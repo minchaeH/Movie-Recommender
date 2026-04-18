@@ -3,4 +3,7 @@
 
 class MovieManager {
 
+    void sortByRating();
+    void printAll();
+    
 };

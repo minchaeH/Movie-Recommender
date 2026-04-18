@@ -10,7 +10,7 @@ private:
     double      totalRating;    
     int         ratingCount;    
     double     averageRating;  
-    
+
 public:
     Movie();                    // 기본 생성자 추가
     Movie(int id, const std::string& title,
@@ -28,5 +28,6 @@ public:
 
     bool operator==(const Movie& other) const;
     bool operator<(const Movie& other) const;
+    friend std::ostream& operator<<(std::ostream& os, const Movie& movie);
     
 };
