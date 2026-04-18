@@ -4,14 +4,14 @@
 // 기본 생성자
 Movie::Movie()
     : id(0), releaseYear(0),
-      totalRating(0.0), ratingCount(0) {}
+      totalRating(0.0), ratingCount(0), averageRating(0.0) {}
 
 // 4인자 생성자
 Movie::Movie(int id, const std::string& title,
              const std::string& genre, int year)
     : id(id), title(title), genre(genre),
       releaseYear(year),
-      totalRating(0.0), ratingCount(0) {}
+      totalRating(0.0), ratingCount(0), averageRating(0.0) {}
 
 int         Movie::getId()           const { return id; }
 std::string Movie::getTitle()        const { return title; }
@@ -21,13 +21,15 @@ int         Movie::getRatingCount()  const { return ratingCount; }
 
 double Movie::getAverageRating() const {
     if (ratingCount == 0) return 0.0;   // 0 나눗셈 방어
-    return totalRating / ratingCount;
+    return averageRating;
 }
 
 void Movie::addRating(double score) {
     if (score < 0.0 || score > 5.0) return;    // 유효성 검사
     totalRating += score;
     ratingCount++;
+    if (ratingCount > 0)
+    averageRating = totalRating / ratingCount;
 }
 
 void Movie::display() const {           // 중복 제거 — 하나만 유지
@@ -36,4 +38,12 @@ void Movie::display() const {           // 중복 제거 — 하나만 유지
               << "  평점: " << getAverageRating()
               << " (" << ratingCount << "건)"
               << std::endl;
+}
+
+bool Movie::operator==(const Movie& other) const {
+    return title == other.title;  
+}
+
+bool Movie::operator<(const Movie& other) const {
+    return this->averageRating < other.averageRating;
 }
