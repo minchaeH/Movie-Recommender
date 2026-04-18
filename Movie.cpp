@@ -41,14 +41,10 @@ void Movie::display() const {           // 중복 제거 — 하나만 유지
 }
 
 //제목 찾기
-bool Movie::operator==(const Movie& b) const {
-    return title == b.title;  
+bool Movie::operator==(const Movie& other) const {
+    return title == other.title;  
 }
 
-//평점순
-bool Movie::operator<(const Movie& other) const {
-    return this->averageRating > other.averageRating;
-}
 // 출력 위해
 std::ostream& operator<<(std::ostream& os, const Movie& movie) {
     os << "제목: " << movie.title << " ㅣ 연도: " << movie.releaseYear

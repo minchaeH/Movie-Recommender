@@ -6,7 +6,8 @@
 #include "Rating.h"
 
 int main() {
-    std::vector<Movie> movies;
+    
+    MovieManager manager;
 
     movies.emplace_back(0, "해리포터", "판타지", 2010);
     movies.emplace_back(1, "왕과 사는 남자", "드라마", 2013);
