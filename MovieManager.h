@@ -9,7 +9,6 @@ class MovieManager {
         std::vector<Movie> movies;
 
     public:
-
         void addMovie(const Movie& movie);
         void sortByRating();
         void printAll() const;

@@ -9,7 +9,6 @@ class UserManager {
         std::vector<User> users;
 
     public:
-
         void addUser(const User& user);
         void printAll() const;
 
