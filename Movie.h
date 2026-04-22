@@ -24,8 +24,8 @@ public:
     int         getRatingCount()     const;  
 
     void addRating(double score);               
-    void display()               const;
 
+    bool operator<(const Movie& other) const;
     bool operator==(const Movie& other) const;
     friend std::ostream& operator<<(std::ostream& os, const Movie& movie);
     

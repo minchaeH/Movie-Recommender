@@ -1,10 +1,6 @@
 #include "RatingManager.h"
 #include <iostream>
 
-#include "RatingManager.h"
-#include <iostream>
-
-
 void RatingManager::rate(int userId, int movieId, double score) {
     if (score < 0.0 || score > 5.0) {
         std::cout << "0~5 사이의 점수를 입력해주세요." << std::endl;

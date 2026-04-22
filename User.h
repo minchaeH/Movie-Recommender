@@ -15,8 +15,6 @@ public:
     std::string getName()    const;
     std::string getEmail()   const;
 
-    void display()   const;
-
     
     bool operator==(const User& other) const;
     friend std::ostream& operator<<(std::ostream& os, const User& user);

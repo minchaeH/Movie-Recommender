@@ -22,11 +22,22 @@ void MovieManager::printAll() const {
 }
 
 void MovieManager::searchMovie(const std::string& title) const {
+    Movie temp(0, title, "", 0); 
     for (const auto& movie : movies) {
-        if (movie.getTitle() == title) {
-            std::cout  << movie << std::endl;
+        if (movie == temp) {       // operator== 사용
+            std::cout << movie << std::endl;
             return;
         }
     }
     std::cout << "검색 결과가 없습니다." << std::endl;
+}
+
+void MovieManager::addRating(int movieId, double score) {
+    for (auto& movie : movies) {
+        if (movie.getId() == movieId) {
+            movie.addRating(score);
+            return;
+        }
+    }
+    std::cout << "해당 ID의 영화가 없습니다." << std::endl;
 }

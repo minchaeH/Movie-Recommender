@@ -9,10 +9,6 @@ int User::getId() const {return id;}
 std::string User::getName() const {return name;}
 std::string User::getEmail() const {return email;}
 
-void User::display() const {
-    std::cout << "ID: " << id << ", Name: " << name << ", Email: " << email << std::endl;
-}
-
 bool User::operator==(const User& other) const {
     return name == other.name;  
 }

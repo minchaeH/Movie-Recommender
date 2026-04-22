@@ -20,29 +20,28 @@ int         Movie::getReleaseYear()  const { return releaseYear; }
 int         Movie::getRatingCount()  const { return ratingCount; }
 
 double Movie::getAverageRating() const {
-    if (ratingCount == 0) return 0.0;   // 0 나눗셈 방어
+    if (ratingCount == 0) return 0.0;   
     return averageRating;
 }
 
 void Movie::addRating(double score) {
-    if (score < 0.0 || score > 5.0) return;    // 유효성 검사
+    if (score < 0.0 || score > 5.0) return;    
     totalRating += score;
     ratingCount++;
     if (ratingCount > 0)
     averageRating = totalRating / ratingCount;
 }
 
-void Movie::display() const {           // 중복 제거 — 하나만 유지
-    std::cout << id << ". " << title
-              << " (" << releaseYear << ")"
-              << "  평점: " << getAverageRating()
-              << " (" << ratingCount << "건)"
-              << std::endl;
-}
-
 //제목 찾기
 bool Movie::operator==(const Movie& other) const {
     return title == other.title;  
+}
+// 오름차
+bool Movie::operator<(const Movie& other) const {
+    if (getAverageRating() != other.getAverageRating()) {
+        return getAverageRating() < other.getAverageRating();
+    }
+    return title < other.title;
 }
 
 // 출력 위해

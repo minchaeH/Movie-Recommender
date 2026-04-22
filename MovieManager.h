@@ -13,5 +13,5 @@ class MovieManager {
         void sortByRating();
         void printAll() const;
         void searchMovie(const std::string& title) const;
-
+        void addRating(int movieId, double score);
 };
