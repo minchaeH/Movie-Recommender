@@ -13,7 +13,7 @@ bool User::operator==(const User& other) const {
     return name == other.name;  
 }
 
-std::ostream& operator<<(std::ostream& os, const User& user) {
-    os << "ID: " << user.getId() << " ㅣ 이름: " << user.getName() << " ㅣ 이메일: " << user.getEmail();
-    return os;
+std::ostream& operator<<(std::ostream& output, const User& user) {
+    output << "ID: " << user.getId() << " ㅣ 이름: " << user.getName() << " ㅣ 이메일: " << user.getEmail();
+    return output;
 }

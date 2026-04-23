@@ -17,5 +17,5 @@ public:
 
     
     bool operator==(const User& other) const;
-    friend std::ostream& operator<<(std::ostream& os, const User& user);
+    friend std::ostream& operator<<(std::ostream& output, const User& user);
 };

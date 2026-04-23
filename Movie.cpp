@@ -45,8 +45,8 @@ bool Movie::operator<(const Movie& other) const {
 }
 
 // 출력 위해
-std::ostream& operator<<(std::ostream& os, const Movie& movie) {
-    os << "제목: " << movie.title << " ㅣ 연도: " << movie.releaseYear
+std::ostream& operator<<(std::ostream& output, const Movie& movie) {
+    output << "제목: " << movie.title << " ㅣ 연도: " << movie.releaseYear
        << " ㅣ 평점: " << movie.getAverageRating() << " ㅣ 평가 수: " << movie.ratingCount << "건";
-    return os;
+    return output;
 }
