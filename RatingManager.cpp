@@ -9,6 +9,16 @@ void RatingManager::rate(int userId, int movieId, double score) {
     ratings.emplace_back(userId, movieId, score);
 }
 
+std::vector<Rating> RatingManager::findByUser(int userId) const {
+    std::vector<Rating> userRatings;
+    for (const auto& r : ratings) {
+        if (r.getUserId() == userId) {
+            userRatings.push_back(r);
+        }
+    }
+    return userRatings;
+}
+
 void RatingManager::printRating(int movieId) const {
     std::cout << "< 영화 ID: " << movieId << " 의 전체 평점 목록 >" << std::endl;
     bool tf = false;

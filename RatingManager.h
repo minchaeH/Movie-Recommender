@@ -9,4 +9,5 @@ public:
     void rate(int userId, int movieId, double score);
     void printRating(int movieId) const;
 
+    std::vector<Rating> findByUser(int userId) const;
 };
