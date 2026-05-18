@@ -65,3 +65,24 @@ void MovieManager::loadFromFile(const std::string& filename) {
     }
     file.close();
 }
+
+void MovieManager::saveToFile(const std::string& filename) {
+    std::ofstream file(filename);
+    if (!file.is_open()) return;
+
+    // 여기!!: 저장할 때도 헤더를 넣어주는 게 매너다 [cite: 1954]
+    file << "id,title,genre,releaseYear\n";
+    for (const auto& m : movies) {
+        file << m.getId() << "," << m.getTitle() << "," << m.getGenre() << "," << m.getReleaseYear() << "\n";
+    }
+    file.close();
+}
+
+const Movie* MovieManager::findById(int id) const {
+    for (const auto& m : movies) {
+        if (m.getId() == id) return &m; 
+    }
+    return nullptr;
+}
+
+int MovieManager::size() const { return (int)movies.size(); }

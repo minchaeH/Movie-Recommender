@@ -8,6 +8,7 @@
 #include "UserManager.h"
 #include "RatingManager.h"
 #include "SimilarityCalculator.h"
+#include "Recommender.h"
 
 int main() {
     
@@ -15,14 +16,18 @@ int main() {
     UserManager userM;
     RatingManager ratingM;
 
+    movieM.loadFromFile("data/movies.csv");
+    userM.loadFromFile("data/users.csv");
+    ratingM.loadFromFile("data/ratings.csv");
+
     int select;
     
     while(true) {
         
-        std::cout << "\n0~9 사이의 숫자를 입력해주세요.\n" << std::endl;
+        std::cout << "\n0~10 사이의 숫자를 입력해주세요.\n" << std::endl;
         std::cout << "0: 종료,\n1: 영화 추가\n2: 영화 제목으로 검색\n";
         std::cout << "3: 영화 전체 출력\n4: 영화 평점순 출력\n5: 사용자 추가\n";
-        std::cout << "6: 사용자 목록 출력\n7: 평점 입력\n8: 영화별 전체 평점 조회\n9: 사용자별 유사도 조회" << std::endl;
+        std::cout << "6: 사용자 목록 출력\n7: 평점 입력\n8: 영화별 전체 평점 조회\n9: 사용자별 유사도 조회\n10: 영화 추천 받기 (M3 핵심!)" << std::endl;
         std::cin >> select;
 
         if (std::cin.fail()) {
@@ -108,10 +113,35 @@ int main() {
                 break;
             }
 
+            case 10: {
+                int targetId;
+                std::cout << "추천받을 유저 ID 입력: ";
+                std::cin >> targetId;
+    
+                Recommender rec(movieM, ratingM, userM);
+                std::vector<int> recMovies = rec.recommend(targetId);
+    
+                if (recMovies.empty()) {
+                    std::cout << "추천 결과가 없습니다! 평점을 더 남기거나 친구를 만드세요." << std::endl;
+                } else {
+                    std::cout << "\n=== 당신을 위한 추천 영화 ===" << std::endl;
+                    for (int mId : recMovies) {
+            
+                    const Movie* m = movieM.findById(mId);
+                    if (m) std::cout << *m << std::endl;
+                    }
+                }
+                break;
+            }
+
             default:
                 std::cout << "잘못된 입력입니다." << std::endl;
         }
     }
+
+    movieM.saveToFile("data/movies.csv");
+    userM.saveToFile("data/users.csv");
+    ratingM.saveToFile("data/ratings.csv");
 
     return 0;
 }
