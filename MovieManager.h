@@ -1,9 +1,11 @@
 #pragma once
 #include <string>
-#include <vector>
 #include "Movie.h"
+#include <vector>
+#include "BaseManager.h"
 
-class MovieManager {
+
+class MovieManager : public BaseManager {
 
     private:
         std::vector<Movie> movies;
@@ -14,4 +16,10 @@ class MovieManager {
         void printAll() const;
         void searchMovie(const std::string& title) const;
         void addRating(int movieId, double score);
+        const Movie* findById(int id) const;      // Recommender에서 영화 정보 출력용
+        void loadFromFile(const std::string& filename) override;
+        void saveToFile(const std::string& filename) override;
+        int size() const override;
+
+        std::vector<Movie>& getMovies() { return movies; }
 };

@@ -1,6 +1,8 @@
 #include "MovieManager.h"
 #include <algorithm>
 #include <iostream>
+#include <fstream>
+#include <sstream>
 
 void MovieManager::addMovie(const Movie& movie) {
     movies.emplace_back(movie);
@@ -40,4 +42,26 @@ void MovieManager::addRating(int movieId, double score) {
         }
     }
     std::cout << "해당 ID의 영화가 없습니다." << std::endl;
+}
+
+void MovieManager::loadFromFile(const std::string& filename) {
+    std::ifstream file(filename);
+    if (!file.is_open()) return;
+
+    std::string line;
+    std::getline(file, line); // ★교수님 강조: 헤더 한 줄 스킵! [cite: 1911, 1914]
+
+    while (std::getline(file, line)) {
+        std::stringstream ss(line);
+        std::string token, title, genre;
+        int id, year;
+
+        std::getline(ss, token, ','); id = std::stoi(token); // [cite: 1867, 1890]
+        std::getline(ss, title, ',');
+        std::getline(ss, genre, ',');
+        std::getline(ss, token, ','); year = std::stoi(token);
+
+        movies.emplace_back(id, title, genre, year);
+    }
+    file.close();
 }
