@@ -26,7 +26,7 @@ void MovieManager::printAll() const {
 void MovieManager::searchMovie(const std::string& title) const {
     Movie temp(0, title, "", 0); 
     for (const auto& movie : movies) {
-        if (movie == temp) {       // operator== 사용
+        if (movie == temp) {      
             std::cout << movie << std::endl;
             return;
         }
@@ -49,14 +49,14 @@ void MovieManager::loadFromFile(const std::string& filename) {
     if (!file.is_open()) return;
 
     std::string line;
-    std::getline(file, line); // ★교수님 강조: 헤더 한 줄 스킵! [cite: 1911, 1914]
+    std::getline(file, line); 
 
     while (std::getline(file, line)) {
         std::stringstream ss(line);
         std::string token, title, genre;
         int id, year;
 
-        std::getline(ss, token, ','); id = std::stoi(token); // [cite: 1867, 1890]
+        std::getline(ss, token, ','); id = std::stoi(token); 
         std::getline(ss, title, ',');
         std::getline(ss, genre, ',');
         std::getline(ss, token, ','); year = std::stoi(token);
@@ -70,7 +70,7 @@ void MovieManager::saveToFile(const std::string& filename) {
     std::ofstream file(filename);
     if (!file.is_open()) return;
 
-    // 여기!!: 저장할 때도 헤더를 넣어주는 게 매너다 [cite: 1954]
+    
     file << "id,title,genre,releaseYear\n";
     for (const auto& m : movies) {
         file << m.getId() << "," << m.getTitle() << "," << m.getGenre() << "," << m.getReleaseYear() << "\n";

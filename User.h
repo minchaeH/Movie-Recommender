@@ -7,7 +7,7 @@ private:
     std::string name;
     std::string email;
 public:
-    User();                    // 기본 생성자 추가
+    User();                  
     User(int id, const std::string& name,
          const std::string& email);
 

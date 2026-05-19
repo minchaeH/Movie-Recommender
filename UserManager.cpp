@@ -18,7 +18,7 @@ void UserManager::loadFromFile(const std::string& filename) {
     if (!file.is_open()) return;
 
     std::string line;
-    std::getline(file, line); // ★헤더 스킵 [cite: 5762]
+    std::getline(file, line); 
 
     while (std::getline(file, line)) {
         if (line.empty()) continue;
@@ -26,7 +26,7 @@ void UserManager::loadFromFile(const std::string& filename) {
         std::string token, name, email;
         int id;
 
-        std::getline(ss, token, ','); id = std::stoi(token); // [cite: 5775]
+        std::getline(ss, token, ','); id = std::stoi(token); 
         std::getline(ss, name, ',');
         std::getline(ss, email, ',');
 

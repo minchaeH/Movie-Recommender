@@ -42,7 +42,7 @@ void RatingManager::loadFromFile(const std::string& filename) {
     if (!file.is_open()) return;
 
     std::string line;
-    std::getline(file, line); // ★헤더 스킵 [cite: 5762]
+    std::getline(file, line); 
 
     while (std::getline(file, line)) {
         if (line.empty()) continue;
@@ -53,7 +53,7 @@ void RatingManager::loadFromFile(const std::string& filename) {
 
         std::getline(ss, token, ','); uId = std::stoi(token);
         std::getline(ss, token, ','); mId = std::stoi(token);
-        std::getline(ss, token, ','); score = std::stod(token); // [cite: 5784]
+        std::getline(ss, token, ','); score = std::stod(token); 
 
         ratings.emplace_back(uId, mId, score);
     }

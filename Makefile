@@ -1,13 +1,12 @@
-# Makefile — Movie Recommender 프로젝트 빌드 
 CXX      = g++
 CXXFLAGS = -std=c++17 -Wall -g
 TARGET   = movie_app
-OBJS     = main.o Movie.o User.o Rating.o MovieManager.o UserManager.o RatingManager.o SimilarityCalculator.o
+OBJS     = main.o Movie.o User.o Rating.o MovieManager.o UserManager.o RatingManager.o SimilarityCalculator.o Recommender.o
 
 $(TARGET): $(OBJS)
 	$(CXX) $(CXXFLAGS) -o $@ $^
 
-main.o: main.cpp Movie.h User.h Rating.h MovieManager.h UserManager.h RatingManager.h SimilarityCalculator.h
+main.o: main.cpp Movie.h User.h Rating.h MovieManager.h UserManager.h RatingManager.h SimilarityCalculator.h Recommender.h
 	$(CXX) $(CXXFLAGS) -c $<
 
 Movie.o: Movie.cpp Movie.h
@@ -29,6 +28,9 @@ RatingManager.o: RatingManager.cpp RatingManager.h Rating.h
 	$(CXX) $(CXXFLAGS) -c $<
 
 SimilarityCalculator.o: SimilarityCalculator.cpp SimilarityCalculator.h Rating.h
+	$(CXX) $(CXXFLAGS) -c $<
+
+Recommender.o: Recommender.cpp Recommender.h MovieManager.h UserManager.h RatingManager.h SimilarityCalculator.h
 	$(CXX) $(CXXFLAGS) -c $<
 
 .PHONY: clean run
