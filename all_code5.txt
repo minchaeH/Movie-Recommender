@@ -1,0 +1,683 @@
+#include "MovieManager.h"
+#include <algorithm>
+#include <iostream>
+#include <fstream>
+#include <sstream>
+
+void MovieManager::addMovie(const Movie& movie) {
+    movies.emplace_back(movie);
+}
+
+void MovieManager::sortByRating() {
+    std::sort(movies.begin(), movies.end(), [](const Movie& a, const Movie& b) {
+        if (a.getAverageRating() != b.getAverageRating()) {
+            return a.getAverageRating() > b.getAverageRating();
+        }
+        return a.getTitle() < b.getTitle();
+    });
+}
+
+void MovieManager::printAll() const {
+    for (const auto& movie : movies) {
+        std::cout << movie << std::endl;
+    }
+}
+
+void MovieManager::searchMovie(const std::string& title) const {
+    Movie temp(0, title, "", 0); 
+    for (const auto& movie : movies) {
+        if (movie == temp) {      
+            std::cout << movie << std::endl;
+            return;
+        }
+    }
+    std::cout << "검색 결과가 없습니다." << std::endl;
+}
+
+void MovieManager::addRating(int movieId, double score) {
+    for (auto& movie : movies) {
+        if (movie.getId() == movieId) {
+            movie.addRating(score);
+            return;
+        }
+    }
+    std::cout << "해당 ID의 영화가 없습니다." << std::endl;
+}
+
+void MovieManager::loadFromFile(const std::string& filename) {
+    std::ifstream file(filename);
+    if (!file.is_open()) return;
+
+    std::string line;
+    std::getline(file, line); 
+
+    while (std::getline(file, line)) {
+        std::stringstream ss(line);
+        std::string token, title, genre;
+        int id, year;
+
+        std::getline(ss, token, ','); id = std::stoi(token); 
+        std::getline(ss, title, ',');
+        std::getline(ss, genre, ',');
+        std::getline(ss, token, ','); year = std::stoi(token);
+
+        movies.emplace_back(id, title, genre, year);
+    }
+    file.close();
+}
+
+void MovieManager::saveToFile(const std::string& filename) {
+    std::ofstream file(filename);
+    if (!file.is_open()) return;
+
+    
+    file << "id,title,genre,releaseYear\n";
+    for (const auto& m : movies) {
+        file << m.getId() << "," << m.getTitle() << "," << m.getGenre() << "," << m.getReleaseYear() << "\n";
+    }
+    file.close();
+}
+
+const Movie* MovieManager::findById(int id) const {
+    for (const auto& m : movies) {
+        if (m.getId() == id) return &m; 
+    }
+    return nullptr;
+}
+
+int MovieManager::size() const { return (int)movies.size(); }#include "User.h"
+#include <iostream>
+
+User::User() :id(0), name(""), email(""){}
+User::User(int id, const std::string& name, const std::string& email) 
+    : id(id), name(name), email(email){}
+
+int User::getId() const {return id;}
+std::string User::getName() const {return name;}
+std::string User::getEmail() const {return email;}
+
+bool User::operator==(const User& other) const {
+    return name == other.name;  
+}
+
+std::ostream& operator<<(std::ostream& output, const User& user) {
+    output << "ID: " << user.getId() << " ㅣ 이름: " << user.getName() << " ㅣ 이메일: " << user.getEmail();
+    return output;
+}#include "UserManager.h"
+#include <fstream>
+#include <sstream>
+#include <iostream>
+
+void UserManager::addUser(const User& user) {
+    users.emplace_back(user);
+}
+
+void UserManager::printAll() const {
+    for (const auto& user : users) {
+        std::cout << user << std::endl;
+    }
+}
+
+void UserManager::loadFromFile(const std::string& filename) {
+    std::ifstream file(filename);
+    if (!file.is_open()) return;
+
+    std::string line;
+    std::getline(file, line); 
+
+    while (std::getline(file, line)) {
+        if (line.empty()) continue;
+        std::stringstream ss(line);
+        std::string token, name, email;
+        int id;
+
+        std::getline(ss, token, ','); id = std::stoi(token); 
+        std::getline(ss, name, ',');
+        std::getline(ss, email, ',');
+
+        users.emplace_back(id, name, email);
+    }
+    file.close();
+}
+
+void UserManager::saveToFile(const std::string& filename) {
+    std::ofstream file(filename);
+    file << "id,name,email\n"; // [cite: 5805]
+    for (const auto& u : users) {
+        file << u.getId() << "," << u.getName() << "," << u.getEmail() << "\n";
+    }
+    file.close();
+}
+
+std::vector<int> UserManager::getAllUserIds() const {
+    std::vector<int> ids;
+    for (const auto& u : users) ids.push_back(u.getId());
+    return ids;
+}#include "Recommender.h"
+#include "SimilarityCalculator.h"
+#include <algorithm>
+#include <map>
+#include <set>
+#include <iostream>
+
+std::vector<int> Recommender::recommend(int targetUserId, int k, int n) {
+    auto myRatings = ratingMgr.findByUser(targetUserId);
+    if (myRatings.empty()) return {}; 
+
+    std::set<int> myMovieIds;
+    for (const auto& r : myRatings) myMovieIds.insert(r.getMovieId());
+
+    std::vector<std::pair<int, int>> similarities;
+    for (int otherId : userMgr.getAllUserIds()) { 
+        if (otherId == targetUserId) continue;
+        int sim = SimilarityCalculator::calculate(myRatings, ratingMgr.findByUser(otherId));
+        if (sim != -100) similarities.push_back({otherId, sim});
+    }
+    std::sort(similarities.begin(), similarities.end(), [](const auto& a, const auto& b) {
+        return a.second > b.second; 
+    });
+
+    std::map<int, double> movieScores;
+    int count = 0;
+    for (const auto& p : similarities) {
+        if (++count > k) break;
+        for (const auto& r : ratingMgr.findByUser(p.first)) {
+            if (myMovieIds.find(r.getMovieId()) == myMovieIds.end()) {
+                movieScores[r.getMovieId()] += r.getScore();
+            }
+        }
+    }
+
+    std::vector<std::pair<int, double>> results(movieScores.begin(), movieScores.end());
+    std::sort(results.begin(), results.end(), [](const auto& a, const auto& b) {
+        return a.second > b.second;
+    });
+
+    std::vector<int> finalRec;
+    for (int i = 0; i < n && i < (int)results.size(); ++i) finalRec.push_back(results[i].first);
+    return finalRec;
+
+}#include "SimilarityCalculator.h"
+#include <cstdlib> 
+
+int SimilarityCalculator::calculate(
+    const std::vector<Rating>& user1, 
+    const std::vector<Rating>& user2) 
+{
+    int commonCount = 0;   
+    int scoreDiffSum = 0;  
+
+    for (const Rating& r1 : user1) {
+        for (const Rating& r2 : user2) {
+            if (r1.getMovieId() == r2.getMovieId()) {
+                commonCount++;
+                scoreDiffSum += std::abs(r1.getScore() - r2.getScore());
+            }
+        }
+    }
+
+    if (commonCount == 0) {
+        return -100;
+    }
+
+    return (commonCount * 10) - scoreDiffSum;
+}#pragma once
+#include <string>
+#include <vector>
+#include "User.h"
+#include "BaseManager.h"
+
+class UserManager : public BaseManager {
+
+    private:
+        std::vector<User> users;
+
+    public:
+        void addUser(const User& user);
+        void printAll() const;
+        std::vector<int> getAllUserIds() const; 
+        void loadFromFile(const std::string& filename) override;
+        void saveToFile(const std::string& filename) override;
+        int size() const override { return (int)users.size(); }
+};#include "RatingManager.h"
+#include <iostream>
+#include <fstream>
+#include <sstream>
+
+void RatingManager::rate(int userId, int movieId, double score) {
+    if (score < 0.0 || score > 5.0) {
+        std::cout << "0~5 사이의 점수를 입력해주세요." << std::endl;
+        return;}
+    
+    ratings.emplace_back(userId, movieId, score);
+}
+
+std::vector<Rating> RatingManager::findByUser(int userId) const {
+    std::vector<Rating> userRatings;
+    for (const auto& r : ratings) {
+        if (r.getUserId() == userId) {
+            userRatings.push_back(r);
+        }
+    }
+    return userRatings;
+}
+
+void RatingManager::printRating(int movieId) const {
+    std::cout << "< 영화 ID: " << movieId << " 의 전체 평점 목록 >" << std::endl;
+    bool tf = false;
+
+    for (const auto& r : ratings) {
+        if (r.getMovieId() == movieId) {
+            r.display();
+            tf = true;
+        }
+    }
+
+    if (!tf) {
+        std::cout << "해당 영화에 대한 평점이 없습니다. " << std::endl;
+    }
+}
+
+void RatingManager::loadFromFile(const std::string& filename) {
+    std::ifstream file(filename);
+    if (!file.is_open()) return;
+
+    std::string line;
+    std::getline(file, line); 
+
+    while (std::getline(file, line)) {
+        if (line.empty()) continue;
+        std::stringstream ss(line);
+        std::string token;
+        int uId, mId;
+        double score;
+
+        std::getline(ss, token, ','); uId = std::stoi(token);
+        std::getline(ss, token, ','); mId = std::stoi(token);
+        std::getline(ss, token, ','); score = std::stod(token); 
+
+        ratings.emplace_back(uId, mId, score);
+    }
+    file.close();
+}
+
+void RatingManager::saveToFile(const std::string& filename) {
+    std::ofstream file(filename);
+    file << "userId,movieId,score\n";
+    for (const auto& r : ratings) {
+        file << r.getUserId() << "," << r.getMovieId() << "," << r.getScore() << "\n";
+    }
+    file.close();
+}#pragma once
+#include <string>
+
+class Rating {
+private:
+    int         userId;
+    int         movieId;
+    double      score;
+
+public:
+    Rating();
+    Rating(int userId, int movieId, double score);
+
+    int         getUserId()  const;
+    int         getMovieId() const;
+    double      getScore()   const;
+
+    void        display() const;
+};#ifndef SIMILARITY_CALCULATOR_H
+#define SIMILARITY_CALCULATOR_H
+
+#include <vector>
+#include "Rating.h"
+
+class SimilarityCalculator {
+public:
+    static int calculate(
+        const std::vector<Rating>& user1,
+        const std::vector<Rating>& user2
+    );
+};
+
+#endif#pragma once
+#include <string>
+
+class BaseManager {
+public:
+    virtual ~BaseManager() {}
+    virtual void loadFromFile(const std::string& filename) = 0;
+    virtual void saveToFile(const std::string& filename) = 0;
+    virtual int size() const = 0;
+};
+#pragma once
+#include <string>
+#include "Movie.h"
+#include <vector>
+#include "BaseManager.h"
+
+
+class MovieManager : public BaseManager {
+
+    private:
+        std::vector<Movie> movies;
+
+    public:
+        void addMovie(const Movie& movie);
+        void sortByRating();
+        void printAll() const;
+        void searchMovie(const std::string& title) const;
+        void addRating(int movieId, double score);
+        const Movie* findById(int id) const; 
+        void loadFromFile(const std::string& filename) override;
+        void saveToFile(const std::string& filename) override;
+        int size() const override;
+
+        std::vector<Movie>& getMovies() { return movies; }
+};#include "Rating.h"
+#include <iostream>
+
+Rating::Rating() : userId(0), movieId(0), score(0) {}
+Rating::Rating(int userId, int movieId, double score)
+    : userId(userId), movieId(movieId), score(score) {}
+
+
+int Rating::getUserId() const { return userId; }
+int Rating::getMovieId() const { return movieId; }
+
+double Rating::getScore() const { 
+    if (score < 0.0 || score > 5.0) {
+        return 0.0;
+    }
+    return score; 
+}
+
+void Rating::display() const {
+    std::cout << "User ID: " << userId << ", Movie ID: " << movieId << ", Score: ";
+    if (score < 0.0 || score > 5.0) {
+        std::cout << 0.0; } 
+    else {
+        std::cout << score; }
+    std::cout << std::endl;
+    
+}
+
+#pragma once
+#include <vector>
+#include "Rating.h"
+#include <string>
+#include "BaseManager.h"
+
+class RatingManager : public BaseManager{
+private:
+    std::vector<Rating> ratings;
+public:
+    void rate(int userId, int movieId, double score);
+    void printRating(int movieId) const;
+    void loadFromFile(const std::string& filename) override;
+    void saveToFile(const std::string& filename) override;
+    int size() const override { return (int)ratings.size(); }
+    std::vector<Rating> findByUser(int userId) const;
+};#pragma once
+#include <vector>
+#include "MovieManager.h"
+#include "RatingManager.h"
+#include "UserManager.h"
+
+class Recommender {
+private:
+    MovieManager& movieMgr;
+    RatingManager& ratingMgr;
+    UserManager&  userMgr;
+
+public:
+    Recommender(MovieManager& mm, RatingManager& rm, UserManager& um) : movieMgr(mm), ratingMgr(rm), userMgr(um) {} 
+
+    std::vector<int> recommend(int targetUserId, int k = 3, int n = 5);
+};#pragma once
+#include <string>
+
+class User {
+private:
+    int         id;
+    std::string name;
+    std::string email;
+public:
+    User();                  
+    User(int id, const std::string& name,
+         const std::string& email);
+
+    int         getId()      const;
+    std::string getName()    const;
+    std::string getEmail()   const;
+
+    
+    bool operator==(const User& other) const;
+    friend std::ostream& operator<<(std::ostream& output, const User& user);
+};
+#include "Movie.h"
+#include <iostream>
+
+Movie::Movie()
+    : id(0), releaseYear(0),
+      totalRating(0.0), ratingCount(0), averageRating(0.0) {}
+
+Movie::Movie(int id, const std::string& title,
+             const std::string& genre, int year)
+    : id(id), title(title), genre(genre),
+      releaseYear(year),
+      totalRating(0.0), ratingCount(0), averageRating(0.0) {}
+
+int         Movie::getId()           const { return id; }
+std::string Movie::getTitle()        const { return title; }
+std::string Movie::getGenre()        const { return genre; }
+int         Movie::getReleaseYear()  const { return releaseYear; }
+int         Movie::getRatingCount()  const { return ratingCount; }
+
+double Movie::getAverageRating() const {
+    if (ratingCount == 0) return 0.0;   
+    return averageRating;
+}
+
+void Movie::addRating(double score) {
+    if (score < 0.0 || score > 5.0) return;    
+    totalRating += score;
+    ratingCount++;
+    if (ratingCount > 0)
+    averageRating = totalRating / ratingCount;
+}
+
+bool Movie::operator==(const Movie& other) const {
+    return title == other.title;  
+}
+
+bool Movie::operator<(const Movie& other) const {
+    if (getAverageRating() != other.getAverageRating()) {
+        return getAverageRating() < other.getAverageRating();
+    }
+    return title < other.title;
+}
+
+std::ostream& operator<<(std::ostream& output, const Movie& movie) {
+    output << "제목: " << movie.title << " ㅣ 연도: " << movie.releaseYear
+       << " ㅣ 평점: " << movie.getAverageRating() << " ㅣ 평가 수: " << movie.ratingCount << "건";
+    return output;
+}
+#pragma once
+#include <string>
+
+class Movie {
+private:
+    int         id;
+    std::string title;
+    std::string genre;
+    int         releaseYear;
+    double      totalRating;    
+    int         ratingCount;    
+    double     averageRating;  
+
+public:
+    Movie();                   
+    Movie(int id, const std::string& title,
+          const std::string& genre, int year);
+
+    int         getId()              const;
+    std::string getTitle()           const;
+    std::string getGenre()           const;
+    int         getReleaseYear()     const;  
+    double      getAverageRating()   const;  
+    int         getRatingCount()     const;  
+
+    void addRating(double score);               
+
+    bool operator<(const Movie& other) const;
+    bool operator==(const Movie& other) const;
+    friend std::ostream& operator<<(std::ostream& output, const Movie& movie);
+    
+};#include <iostream>
+#include <vector>
+#include <string>
+#include "Movie.h"
+#include "User.h"
+#include "Rating.h"
+#include "MovieManager.h"
+#include "UserManager.h"
+#include "RatingManager.h"
+#include "SimilarityCalculator.h"
+#include "Recommender.h"
+
+int main() {
+    
+    MovieManager movieM;
+    UserManager userM;
+    RatingManager ratingM;
+
+    movieM.loadFromFile("data/movies.csv");
+    userM.loadFromFile("data/users.csv");
+    ratingM.loadFromFile("data/ratings.csv");
+
+    int select;
+    
+    while(true) {
+        
+        std::cout << "\n0~10 사이의 숫자를 입력해주세요.\n" << std::endl;
+        std::cout << "0: 종료,\n1: 영화 추가\n2: 영화 제목으로 검색\n";
+        std::cout << "3: 영화 전체 출력\n4: 영화 평점순 출력\n5: 사용자 추가\n";
+        std::cout << "6: 사용자 목록 출력\n7: 평점 입력\n8: 영화별 전체 평점 조회\n9: 사용자별 유사도 조회\n10: 영화 추천 받기 (M3 핵심!)" << std::endl;
+        std::cin >> select;
+
+        if (std::cin.fail()) {
+        std::cin.clear();
+        std::cin.ignore(1000, '\n'); 
+        std::cout << "잘못된 입력입니다." << std::endl;
+        continue;
+    }
+
+        switch(select) {
+            case 0: {
+                std::cout << "프로그램을 종료합니다." << std::endl;
+                return 0; }
+
+            case 1:{
+                int id, year;
+                std::string title, genre;
+                std::cout << "영화의 ID, 제목, 장르, 연도를 입력하세요 : ";
+                std::cin >> id >> title >> genre >> year;
+                movieM.addMovie(Movie(id, title, genre, year));
+                break;}
+
+            case 2: {
+                std::string title;
+                std::cout << "제목을 입력하세요 : ";
+                std::cin >> title;
+                movieM.searchMovie(title);
+                break; }
+
+            case 3: {
+               movieM.printAll();
+                break; }
+
+            case 4:{
+                movieM.sortByRating();
+                movieM.printAll();
+                break; }
+
+            case 5: {
+                int id;
+                std::string name, email;
+                std::cout << "ID, 이름, 이메일을 입력하세요 : ";
+                std::cin >> id >> name >> email;
+                userM.addUser(User(id, name, email));
+                break; }
+
+            case 6:
+               userM.printAll();
+                break;
+
+            case 7: { 
+                int userid, movieid;
+                double score;
+                std::cout << "유저ID, 영화ID, 평점(0~5)을 입력하세요 : ";
+                std::cin >> userid >> movieid >> score;
+                ratingM.rate(userid, movieid, score); 
+                movieM.addRating(movieid, score);
+                break; }
+
+            case 8: { 
+                int movieid;
+                std::cout << "조회할 영화 ID를 입력하세요 : ";
+                std::cin >> movieid;
+                ratingM.printRating(movieid);
+                break;
+            }
+
+            case 9: {
+                int u1, u2;
+                std::cout << "비교할 두 유저의 ID를 입력하세요: ";
+                std::cin >> u1 >> u2;
+
+                std::vector<Rating> ratings1 = ratingM.findByUser(u1);
+                std::vector<Rating> ratings2 = ratingM.findByUser(u2);
+
+                int sim = SimilarityCalculator::calculate(ratings1, ratings2);
+
+                if (sim == -100) {
+                    std::cout << "공통으로 본 영화가 없어서 비교 불가!" << std::endl;
+                } else {
+                    std::cout << "User " << u1 << "와 User " << u2 << "의 유사도: " << sim << std::endl;
+                }
+                break;
+            }
+
+            case 10: {
+                int targetId;
+                std::cout << "추천받을 유저 ID 입력: ";
+                std::cin >> targetId;
+    
+                Recommender rec(movieM, ratingM, userM);
+                std::vector<int> recMovies = rec.recommend(targetId);
+    
+                if (recMovies.empty()) {
+                    std::cout << "추천 결과가 없습니다! 평점을 더 남기거나 친구를 만드세요." << std::endl;
+                } else {
+                    std::cout << "\n=== 당신을 위한 추천 영화 ===" << std::endl;
+                    for (int mId : recMovies) {
+            
+                    const Movie* m = movieM.findById(mId);
+                    if (m) std::cout << *m << std::endl;
+                    }
+                }
+                break;
+            }
+
+            default:
+                std::cout << "잘못된 입력입니다." << std::endl;
+        }
+    }
+
+    movieM.saveToFile("data/movies.csv");
+    userM.saveToFile("data/users.csv");
+    ratingM.saveToFile("data/ratings.csv");
+
+    return 0;
+}

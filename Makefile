@@ -1,6 +1,6 @@
 CXX      = g++
 CXXFLAGS = -std=c++17 -Wall -g
-TARGET   = movie_app
+TARGET   = movie_recommender
 OBJS     = main.o Movie.o User.o Rating.o MovieManager.o UserManager.o RatingManager.o SimilarityCalculator.o Recommender.o
 
 $(TARGET): $(OBJS)
