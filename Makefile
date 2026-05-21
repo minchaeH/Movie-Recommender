@@ -1,7 +1,9 @@
 CXX      = g++
-CXXFLAGS = -std=c++17 -Wall -g
+CXXFLAGS = -std=c++17 -Wall -g -Isrc
 TARGET   = movie_recommender
 OBJS     = main.o Movie.o User.o Rating.o MovieManager.o UserManager.o RatingManager.o SimilarityCalculator.o Recommender.o
+
+VPATH = src
 
 $(TARGET): $(OBJS)
 	$(CXX) $(CXXFLAGS) -o $@ $^

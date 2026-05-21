@@ -1,0 +1,17 @@
+*.o
+*.a
+*.out
+SimilarityCalculator.o
+OBJS/
+obj/
+
+main
+app
+movie_recommender
+*.exe
+
+.vscode/
+.idea/
+
+.DS_Store
+Thumbs.db
