@@ -1,3 +1,4 @@
+# 컴파일 산출물
 *.o
 *.a
 *.out
@@ -5,13 +6,16 @@ SimilarityCalculator.o
 OBJS/
 obj/
 
+# 실행 파일
 main
 app
 movie_recommender
 *.exe
 
+# IDE/에디터 설정
 .vscode/
 .idea/
 
+# OS 파일
 .DS_Store
 Thumbs.db
