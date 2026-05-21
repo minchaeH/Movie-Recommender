@@ -20,6 +20,12 @@ int main() {
     userM.loadFromFile("data/users.csv");
     ratingM.loadFromFile("data/ratings.csv");
 
+    for (int uid : userM.getAllUserIds()) {
+        for (const auto& r : ratingM.findByUser(uid)) {
+            movieM.addRating(r.getMovieId(), r.getScore());
+            }
+    }
+
     int select;
     
     while(true) {
@@ -40,6 +46,9 @@ int main() {
         switch(select) {
             case 0: {
                 std::cout << "프로그램을 종료합니다." << std::endl;
+                movieM.saveToFile("data/movies.csv");
+                userM.saveToFile("data/users.csv");
+                ratingM.saveToFile("data/ratings.csv");
                 return 0; }
 
             case 1:{
@@ -138,10 +147,6 @@ int main() {
                 std::cout << "잘못된 입력입니다." << std::endl;
         }
     }
-
-    movieM.saveToFile("data/movies.csv");
-    userM.saveToFile("data/users.csv");
-    ratingM.saveToFile("data/ratings.csv");
 
     return 0;
 }
