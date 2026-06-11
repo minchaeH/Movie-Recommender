@@ -2,12 +2,13 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <stdexcept>
 
 void RatingManager::rate(int userId, int movieId, double score) {
     if (score < 0.0 || score > 5.0) {
-        std::cout << "0~5 사이의 점수를 입력해주세요." << std::endl;
-        return;}
-    
+        throw std::invalid_argument("0~5 사이의 점수를 입력해주세요.");
+    }
+
     ratings.emplace_back(userId, movieId, score);
 }
 
@@ -39,7 +40,9 @@ void RatingManager::printRating(int movieId) const {
 
 void RatingManager::loadFromFile(const std::string& filename) {
     std::ifstream file(filename);
-    if (!file.is_open()) return;
+    if (!file.is_open()) {
+        throw std::runtime_error("파일을 열 수 없습니다: " + filename);
+    }
 
     std::string line;
     std::getline(file, line); 
@@ -62,6 +65,10 @@ void RatingManager::loadFromFile(const std::string& filename) {
 
 void RatingManager::saveToFile(const std::string& filename) {
     std::ofstream file(filename);
+    if (!file.is_open()) {
+        throw std::runtime_error("파일을 열 수 없습니다: " + filename);
+    }
+    
     file << "userId,movieId,score\n";
     for (const auto& r : ratings) {
         file << r.getUserId() << "," << r.getMovieId() << "," << r.getScore() << "\n";

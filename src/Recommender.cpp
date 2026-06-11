@@ -4,8 +4,11 @@
 #include <map>
 #include <set>
 #include <iostream>
+#include "Timer.h"
 
 std::vector<int> Recommender::recommend(int targetUserId, int k, int n) {
+    Timer t("영화 추천 알고리즘");
+    
     auto myRatings = ratingMgr.findByUser(targetUserId);
     if (myRatings.empty()) return {}; 
 

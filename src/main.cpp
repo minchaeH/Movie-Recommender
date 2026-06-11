@@ -15,10 +15,15 @@ int main() {
     MovieManager movieM;
     UserManager userM;
     RatingManager ratingM;
-
-    movieM.loadFromFile("data/movies.csv");
-    userM.loadFromFile("data/users.csv");
-    ratingM.loadFromFile("data/ratings.csv");
+    try {
+        movieM.loadFromFile("data/movies.csv");
+        userM.loadFromFile("data/users.csv");
+        ratingM.loadFromFile("data/ratings.csv");
+    } catch (const std::exception& e) {
+        std::cerr << "초기 데이터 로딩 중 치명적인 오류 발생: " << e.what() << std::endl;
+        std::cerr << "CSV 파일이 data/ 폴더에 있는지 확인하세요. 프로그램을 종료합니다." << std::endl;
+        return -1;
+    }
 
     for (int uid : userM.getAllUserIds()) {
         for (const auto& r : ratingM.findByUser(uid)) {
@@ -30,10 +35,10 @@ int main() {
     
     while(true) {
         
-        std::cout << "\n0~10 사이의 숫자를 입력해주세요.\n" << std::endl;
+        std::cout << "\n0~12 사이의 숫자를 입력해주세요.\n" << std::endl;
         std::cout << "0: 종료,\n1: 영화 추가\n2: 영화 제목으로 검색\n";
         std::cout << "3: 영화 전체 출력\n4: 영화 평점순 출력\n5: 사용자 추가\n";
-        std::cout << "6: 사용자 목록 출력\n7: 평점 입력\n8: 영화별 전체 평점 조회\n9: 사용자별 유사도 조회\n10: 영화 추천 받기 (M3 핵심!)" << std::endl;
+        std::cout << "6: 사용자 목록 출력\n7: 평점 입력\n8: 영화별 전체 평점 조회\n9: 사용자별 유사도 조회\n10: 영화 추천 받기\n11: 장르별 영화 조회\n12: 영화 통계 조회" << std::endl;
         std::cin >> select;
 
         if (std::cin.fail()) {
@@ -46,10 +51,17 @@ int main() {
         switch(select) {
             case 0: {
                 std::cout << "프로그램을 종료합니다." << std::endl;
+
+                try {
                 movieM.saveToFile("data/movies.csv");
                 userM.saveToFile("data/users.csv");
                 ratingM.saveToFile("data/ratings.csv");
-                return 0; }
+                std::cout << "저장 완료!" << std::endl;
+                } catch (const std::exception& e) {
+                    std::cerr << "데이터 저장 중 오류 발생 (권한을 확인하세요): " << e.what() << std::endl;
+                }
+                return 0;
+            }
 
             case 1:{
                 int id, year;
@@ -140,6 +152,19 @@ int main() {
                     if (m) std::cout << *m << std::endl;
                     }
                 }
+                break;
+            }
+
+            case 11: {
+                std::string genre;
+                std::cout << "검색할 장르를 입력하세요 (예: Action, Drama): ";
+                std::cin >> genre;
+                movieM.filterByGenre(genre);
+                break;
+            }
+
+            case 12: {
+                movieM.printStatistics();
                 break;
             }
 
