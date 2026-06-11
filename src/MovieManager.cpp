@@ -8,21 +8,6 @@
 #include <numeric>  
 #include <map>      
 #include <iomanip>
-#include <cctype>
-#include <cstdlib>
-
-const std::string COLOR_RESET = "\033[0m";   // 원래 색으로
-const std::string COLOR_RED = "\033[31m";    // 에러/경고 (빨강)
-const std::string COLOR_GREEN = "\033[32m";  // 성공/제목 (초록)
-const std::string COLOR_YELLOW = "\033[33m"; // 정보/알림 (노랑)
-
-void clearScreen() {
-#ifdef _WIN32
-    std::system("cls");
-#else
-    std::system("clear");
-#endif
-}
 
 void MovieManager::addMovie(const Movie& movie) {
     movies.emplace_back(movie);
@@ -40,65 +25,27 @@ void MovieManager::sortByRating() {
 }
 
 void MovieManager::printAll() const {
-    clearScreen();
-    std::cout << COLOR_GREEN << "\n🎬 [전체 영화 목록]" << COLOR_RESET << std::endl;
-    
-    int count = 0;
     for (const auto& movie : movies) {
         std::cout << movie << std::endl;
-        count++;
-        
-        if (count % 10 == 0 && count < movies.size()) {
-            std::cout << COLOR_YELLOW << "\n[ " << (count / 10) << " 페이지 ] 다음 페이지를 보려면 아무 문자나 입력 후 Enter를 치세요 (q 누르면 종료): " << COLOR_RESET;
-            std::string input;
-            std::cin >> input;
-            if (input == "q" || input == "Q") {
-                clearScreen();
-                return; 
-            }
-            clearScreen(); 
-            std::cout << COLOR_GREEN << "\n[전체 영화 목록 - 계속]" << COLOR_RESET << std::endl;
-        }
     }
-    std::cout << COLOR_GREEN << "\n목록 출력이 완료되었습니다." << COLOR_RESET << std::endl;
 }
 
 void MovieManager::searchMovie(const std::string& title) const {
     Timer t("영화 검색");
 
-    clearScreen();
-    std::string lowerTitle = title;
-    std::transform(lowerTitle.begin(), lowerTitle.end(), lowerTitle.begin(), ::tolower);
-
-    bool foundAny = false;
-    std::cout << COLOR_GREEN << "\n[" << title << "] 검색 결과..." << COLOR_RESET << std::endl;
-
+    Movie temp(0, title, "", 0); 
     for (const auto& movie : movies) {
-        std::string lowerMovieTitle = movie.getTitle();
-        std::transform(lowerMovieTitle.begin(), lowerMovieTitle.end(), lowerMovieTitle.begin(), ::tolower);
-
-        if (lowerMovieTitle.find(lowerTitle) != std::string::npos) {      
-            std::cout << "🎬 " << movie << std::endl;
-            foundAny = true;
+        if (movie == temp) {      
+            std::cout << movie << std::endl;
+            return;
         }
     }
-
-    if (foundAny) {
-        return; 
-    }
-
-
     int minDistance = 9999;
     std::string closestTitle = "";
     const Movie* closestMovie = nullptr;
 
     for (const auto& movie : movies) {
-
-        std::string lowerMovieTitle = movie.getTitle();
-        std::transform(lowerMovieTitle.begin(), lowerMovieTitle.end(), lowerMovieTitle.begin(), ::tolower);
-
-        int dist = calculateLevenshteinDistance(lowerTitle, lowerMovieTitle);
-        
+        int dist = calculateLevenshteinDistance(title, movie.getTitle());
         if (dist < minDistance) {
             minDistance = dist;
             closestTitle = movie.getTitle();
@@ -106,11 +53,11 @@ void MovieManager::searchMovie(const std::string& title) const {
         }
     }
     if (minDistance <= 3 && closestMovie != nullptr) {
-       std::cout << COLOR_RED << "\n정확한 검색 결과가 없습니다." << COLOR_RESET << std::endl;
-        std::cout << COLOR_YELLOW << "혹시 [" << closestTitle << "] 을(를) 찾으시나요?" << COLOR_RESET << std::endl;
-        std::cout << COLOR_GREEN << "추천 결과: " << *closestMovie << COLOR_RESET << std::endl;
+        std::cout << "\n정확한 검색 결과가 없습니다." << std::endl;
+        std::cout << "혹시 [" << closestTitle << "] 을(를) 찾으시나요?" << std::endl;
+        std::cout << "추천 결과: " << *closestMovie << std::endl;
     } else {
-        std::cout << COLOR_RED << "검색 결과가 없습니다." << COLOR_RESET << std::endl;
+        std::cout << "검색 결과가 없습니다." << std::endl;
     }
 }
 
@@ -121,7 +68,7 @@ void MovieManager::addRating(int movieId, double score) {
             return;
         }
     }
-    std::cout << COLOR_RED << "해당 ID의 영화가 없습니다." << COLOR_RESET << std::endl;
+    std::cout << "해당 ID의 영화가 없습니다." << std::endl;
 }
 
 void MovieManager::loadFromFile(const std::string& filename) {
@@ -150,7 +97,7 @@ void MovieManager::loadFromFile(const std::string& filename) {
         movies.emplace_back(id, title, genre, year);
     }
         catch (const std::exception& e) {
-            std::cerr << COLOR_YELLOW << lineNum << "번 줄 건너뜀 (데이터 오류): " << e.what() << COLOR_RESET << std::endl;
+            std::cerr << lineNum << "번 줄 건너뜀 (데이터 오류): " << e.what() << std::endl;
         }
     }
     file.close();
@@ -180,16 +127,16 @@ const Movie* MovieManager::findById(int id) const {
 int MovieManager::size() const { return (int)movies.size(); }
 
 void MovieManager::filterByGenre(const std::string& genre) const {
-    clearScreen();
     std::vector<Movie> filtered;
     
+    // for-if문 안 쓴다! 모던 C++ 스타일로 조건에 맞는 놈만 복사!
     std::copy_if(movies.begin(), movies.end(), std::back_inserter(filtered),
                  [&genre](const Movie& m) { return m.getGenre() == genre; });
 
     if (filtered.empty()) {
-        std::cout << COLOR_RED << genre << " 장르의 영화가 없습니다." << COLOR_RESET << std::endl;
+        std::cout << genre << " 장르의 영화가 없습니다." << std::endl;
     } else {
-        std::cout << COLOR_GREEN << "\n=== [" << genre << "] 장르 영화 목록 ===" << COLOR_RESET << std::endl;
+        std::cout << "\n=== [" << genre << "] 장르 영화 목록 ===" << std::endl;
         for (const auto& m : filtered) {
             std::cout << m << std::endl;
         }
@@ -197,10 +144,8 @@ void MovieManager::filterByGenre(const std::string& genre) const {
 }
 
 void MovieManager::printStatistics() const {
-
-    clearScreen();
     if (movies.empty()) {
-        std::cout << COLOR_RED << "등록된 영화가 없습니다." << COLOR_RESET << std::endl;
+        std::cout << "등록된 영화가 없습니다." << std::endl;
         return;
     }
 
@@ -209,7 +154,7 @@ void MovieManager::printStatistics() const {
         [](double sum, const Movie& m) { return sum + m.getAverageRating(); });
     double overallAverage = totalScore / movies.size();
 
-    std::cout << COLOR_GREEN << "\n[영화 통계 요약]" << COLOR_RESET << std::endl;
+    std::cout << "\n[영화 통계 요약]" << std::endl;
     std::cout << "총 영화 개수: " << movies.size() << "편" << std::endl;
     std::cout << std::fixed << std::setprecision(2); // 소수점 2자리 고정
     std::cout << "전체 평균 평점: " << overallAverage << "점\n" << std::endl;
@@ -221,7 +166,7 @@ void MovieManager::printStatistics() const {
         genreStats[m.getGenre()].second += 1;
     }
 
-    std::cout << COLOR_YELLOW << "[장르별 평균 평점]" << COLOR_RESET << std::endl;
+    std::cout << "[장르별 평균 평점]" << std::endl;
     for (const auto& pair : genreStats) {
         std::cout << "- " << pair.first << ": " << (pair.second.first / pair.second.second) 
                   << "점 (" << pair.second.second << "편)" << std::endl;
